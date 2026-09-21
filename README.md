@@ -1,4 +1,129 @@
-﻿# SOSOVE Shopline Dashboard
+目前这个项目已经不只是一个订单列表，而是一套 Shopline 独立站经营监控面板，主要可以实现下面这些功能。
+1. 经营总览
+- 查看今日、昨天、7 天、30 天和自定义日期数据
+- 订单数、销售额、客单价、转化率、访客/会话等核心指标
+- 销售额与订单趋势图
+- 环比、同比、7 天/30 天对比
+- 转化漏斗：会话 → 活跃用户 → GA4 唯一交易 → Shopline 订单
+2. 流量来源与渠道分析
+- Facebook、Instagram、Google、TikTok、Email、Direct
+- LINE、Yahoo、自然流量、SmartPush 官方归因
+- 每个渠道的会话、订单、销售额、转化率
+- 查看某个渠道下的全部订单
+- 展示 UTM 来源、广告系列、广告组和素材信息
+- 把 Google 自然订单、Yahoo 订单、Direct 订单合并展示
+- SmartPush 官方归因订单可以直接点击查看
+3. Campaign 广告下钻
+- 按 Campaign、Adset、Ad、Content 查看订单
+- 查看每个广告层级的客户数、销售额、客单价
+- 搜索和导出广告归因数据
+- 支持折叠显示，避免页面过长
+4. 广告归因诊断
+- UTM 缺失订单清单
+- UTM 命名规范检查
+- 自动识别错误 UTM
+- Click ID 与 Campaign ID 映射
+- 显示归因覆盖率、官方归因率、Campaign 覆盖率
+- 提供修正建议和映射模板
+5. 利润估算
+- 销售额、退款、净销售额
+- 商品成本
+- SKU 单独成本
+- 支付手续费
+- 单均物流成本
+- 分市场物流成本
+- 广告花费
+- 预计利润和利润率
+- 成本覆盖率、利润可信度和风险提示
+利润越准确，越需要配置：
+SHOPLINE_PRODUCT_COST_RATE=0.35
+SHOPLINE_PAYMENT_FEE_RATE=0.036
+SHOPLINE_SHIPPING_COST_PER_ORDER=500
+SHOPLINE_SKU_COST_JSON={"SKU-001":1200}
+SHOPLINE_SHIPPING_COST_BY_MARKET_JSON={"JP":500}
+SHOPLINE_AD_SPEND_JSON={"Facebook":0,"Instagram":0,"Google":0,"TikTok":0,"Email":0,"Direct":0,"Organic":0,"Ad":0}
+6. 客户分析
+- 唯一客户数
+- 新客数
+- 复购客户数
+- 复购订单率
+- 平均 LTV
+- 人均订单数
+- 客户 RFM 分层
+- 高价值客户排行
+- 缺少手机号、邮箱、客户 ID 时给出配置提示
+客户分析是否完整，取决于 Shopline 订单接口是否返回客户姓名、邮箱、电话或客户 ID。
+7. 订单与商品
+- 最近订单查询
+- 按订单号、客户、来源搜索
+- 按渠道和订单状态筛选
+- 订单分页
+- 导出 CSV
+- 商品销量、销售额、库存
+- 库存预警和商品异常分析
+- 最近订单支持按天查看和翻页
+8. 今日经营摘要
+- 今日订单、销售额、预计利润
+- 与昨天对比
+- 自动识别增长渠道
+- 自动识别下降渠道
+- 异常商品提醒
+- 生成当日经营判断
+9. 预警信号
+- 订单下滑
+- 转化率异常
+- 广告花费异常
+- 库存不足
+- GA4 转化延迟
+- 数据接口异常
+- 支持查看订单、查看渠道、忽略预警、恢复预警
+- 可以发送到 Feishu、Slack 或其他 Webhook
+10. 数据质量与对账
+- Shopline 订单与 GA4 唯一交易对账
+- GA4 重复 Purchase 事件检查
+- 订单分页是否触顶检查
+- 数据同步质量评分
+- 接口异常、缓存状态和同步日志
+- 保留最后一次成功快照，避免接口异常时显示假数据
+11. GA4 集成
+- GA4 Property ID
+- 服务账号 JSON
+- GA4 Purchase 数据
+- 渠道会话数据
+- 活跃用户数据
+- GA4 转化率
+- 支持使用 GA4 的 userKeyEventRate，而不是只用订单数计算转化率
+GA4 需要配置：
+GA4_PROPERTY_ID=你的Property ID
+GA4_KEY_EVENT_NAME=purchase
+GA4_CONVERSION_METRIC=userKeyEventRate
+GA4_CONVERSION_MODE=key_event_rate
+GA4_SERVICE_ACCOUNT_FILE=/app/secrets/ga.json
+12. 部署与运行
+- Windows 本地运行
+- Ubuntu VPS 部署
+- Docker Compose 部署
+- Debian ARM64 NAS 部署
+- GitHub Actions 自动构建镜像
+- 支持 GHCR 镜像
+- 支持 systemd 常驻运行
+- 支持 Nginx 反向代理和 HTTPS
+- 支持环境变量和密钥隔离
+- 支持面板访问密码
+本地启动：
+python -m shopline_monitor.server --port 8787
+访问：
+http://127.0.0.1:8787/
+目前的功能边界
+- 订单是 Shopline API 准实时同步，不是 WebSocket 秒级实时。
+- GA4 Purchase 和 GA4 转化通常会有延迟，GA4 订单数不一定和 Shopline 完全一致。
+- 广告花费目前主要靠 SHOPLINE_AD_SPEND_JSON 配置，若要自动拉 Facebook、Google、TikTok 广告消耗，需要再接对应广告平台 API。
+- 利润是否准确取决于商品成本、SKU 成本、物流费和广告花费是否配置完整。
+- 客户分析是否完整取决于 Shopline 是否返回客户联系方式。
+- 归因覆盖是否完整取决于订单是否带有 UTM、Click ID 和 Shopline 官方归因信息。
+仓库地址：sosoveooo-bit/sosove-shopline-dashboard
+ 
+ # SOSOVE Shopline Dashboard
 
 A small full-stack dashboard for monitoring Shopline store data.
 
